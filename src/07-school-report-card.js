@@ -42,4 +42,64 @@
  */
 export function generateReportCard(student) {
   // Your code here
+  if ( !student || typeof student !== "object" || typeof student.name !== "string" || student.name.trim() === "" || typeof student.marks !== "object")
+    return null;
+
+  const subjectKeys = Object.keys(student.marks);
+  if (subjectKeys.length === 0) 
+    return null;
+
+  const marksValues = Object.values(student.marks);
+
+  const areValidMarks = marksValues.every(
+    mark => typeof mark === "number" && mark >= 0 && mark <= 100
+  );
+  if (!areValidMarks) 
+    return null;
+
+  const totalMarks = marksValues.reduce((accumulator, mark) => accumulator + mark, 0);
+
+  const subjectCount = subjectKeys.length;
+
+  const percentage = parseFloat(((totalMarks / (subjectCount * 100)) * 100).toFixed(2));
+
+  let grade = "F";
+  if (percentage >= 90) 
+    grade = "A+";
+  else if (percentage >= 80) 
+    grade = "A";
+  else if (percentage >= 70) 
+    grade = "B";
+  else if (percentage >= 60) 
+    grade = "C";
+  else if (percentage >= 40) 
+    grade = "D";
+  
+  const markList = Object.entries(student.marks);
+  const highestSubject = markList.reduce((highest, [subject, mark]) => {
+    if (mark > highest.highestMark) 
+      return { highestMark: mark, subject }; 
+    return highest;
+  }, {highestMark: Number.NEGATIVE_INFINITY, subject: ""}).subject;
+
+  const lowestSubject = markList.reduce((lowest, [subject, mark]) => {
+    if (mark < lowest.lowestMark) 
+      return { lowestMark: mark, subject };
+    return lowest;
+  }, {lowestMark: Number.POSITIVE_INFINITY, subject: ""}).subject;
+
+  const passedSubjects = markList.filter((mark) => mark[1] >= 40).map((subject) => subject[0]);
+  const failedSubjects = markList.filter((mark) => mark[1] < 40).map((subject) => subject[0]);
+
+  return {
+    name: student.name,
+    totalMarks,
+    percentage,
+    grade,
+    highestSubject,
+    lowestSubject,
+    passedSubjects,
+    failedSubjects,
+    subjectCount
+  };
 }
