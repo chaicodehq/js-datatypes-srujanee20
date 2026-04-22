@@ -45,4 +45,53 @@
  */
 export function iplAuctionSummary(team, players) {
   // Your code here
+  if (!team || typeof team.purse !== 'number' || team.purse <= 0) {
+    return null;
+  }
+  if (!Array.isArray(players) || players.length === 0) {
+    return null;
+  }
+
+  let playerCount = 0;
+  const playerStats = players.reduce((acc, player) => {
+    acc.totalSpent += player.price;
+    acc.remaining -= player.price;
+    acc.playerCount++;
+    acc.isOverBudget = acc.remaining < 0;
+
+    if (!playerCount) {
+      acc.costliestPlayer = player;
+      acc.cheapestPlayer = player;
+      acc.averagePrice = player.price;
+      acc.byRole[player.role] = 1;
+    } else {
+      if (player.price > acc.costliestPlayer.price) {
+        acc.costliestPlayer = player;
+      }
+      if (player.price < acc.cheapestPlayer.price) {
+        acc.cheapestPlayer = player;
+      }
+      acc.averagePrice = Math.round(acc.totalSpent / acc.playerCount);
+      acc.byRole[player.role] = (acc.byRole[player.role] || 0) + 1;
+    }
+
+    playerCount++;
+    return acc;
+  }, {
+    teamName: team.name,
+    totalSpent: 0,
+    remaining: team.purse,
+    playerCount: 0,
+    costliestPlayer: null,
+    cheapestPlayer: null,
+    averagePrice: 0,
+    byRole: { bat: 0, bowl: 0, ar: 0, wk: 0 },
+    isOverBudget: false
+  });
+
+  playerStats.byRole = Object.fromEntries(
+    Object.entries(playerStats.byRole).filter(([role, count]) => count != 0)
+  );
+
+  return playerStats;
 }
